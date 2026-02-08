@@ -69,7 +69,7 @@ const manager = new BusManager({
         port: 1883,
       }),
     },
-  }
+  },
 })
 ```
 
@@ -105,8 +105,8 @@ const transport = new RedisTransport({
 
 const bus = new Bus(transport, {
   retryQueue: {
-    retryInterval: '100ms'
-  }
+    retryInterval: '100ms',
+  },
 })
 ```
 
@@ -126,10 +126,10 @@ const manager = new BusManager({
         port: 6379,
       }),
       retryQueue: {
-        retryInterval: '100ms'
-      }
+        retryInterval: '100ms',
+      },
     },
-  }
+  },
 })
 
 manager.use('redis').publish('channel', 'Hello World')
@@ -143,13 +143,13 @@ You have multiple options to configure the retry queue.
 export interface RetryQueueOptions {
   // Enable the retry queue (default: true)
   enabled?: boolean
-  
+
   // Defines if we allow duplicates messages in the retry queue (default: true)
   removeDuplicates?: boolean
-  
+
   // The maximum size of the retry queue (default: null)
   maxSize?: number | null
-  
+
   // The interval between each retry (default: false)
   retryInterval?: Duration | false
 }
@@ -169,7 +169,7 @@ const buggyTransport = new ChaosTransport(new MemoryTransport())
 const bus = new Bus(buggyTransport)
 
 /**
- * Now, every time you will try to publish a message, the transport 
+ * Now, every time you will try to publish a message, the transport
  * will throw an error.
  */
 buggyTransport.alwaysThrow()

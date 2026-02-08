@@ -2,7 +2,7 @@ services:
   redis:
     image: redis:8.4-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
 
   redis-cluster:
     profiles:
@@ -14,6 +14,6 @@ services:
       - MASTERS=3
       - SLAVES_PER_MASTER=0
     ports:
-      - "7000:7000"
-      - "7001:7001"
-      - "7002:7002"
+      - '7000:7000'
+      - '7001:7001'
+      - '7002:7002'

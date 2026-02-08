@@ -7,11 +7,9 @@
 
 import { setTimeout } from 'node:timers/promises'
 import { test } from '@japa/runner'
-import { Client } from 'pg'
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql'
 import { PostgresTransport } from '../../src/transports/postgres.js'
 import { JsonEncoder } from '../../src/encoders/json_encoder.js'
-import { TransportEncoder, TransportMessage } from '../../src/types/main.js'
 
 test.group('Postgres Transport', (group) => {
   let container: StartedPostgreSqlContainer

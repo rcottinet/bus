@@ -35,10 +35,7 @@ export class PostgresTransport implements Transport {
 
   constructor(config: PostgresTransportConfig, encoder?: TransportEncoder)
   constructor(config: string, encoder?: TransportEncoder)
-  constructor(
-    options: PostgresTransportConfig | string,
-    encoder?: TransportEncoder
-  ) {
+  constructor(options: PostgresTransportConfig | string, encoder?: TransportEncoder) {
     this.#encoder = encoder ?? new JsonEncoder()
 
     /**
@@ -77,21 +74,21 @@ export class PostgresTransport implements Transport {
   async disconnect(): Promise<void> {
     this.#publisherConnected = false
     this.#subscriberConnected = false
-    
+
     const promises: Promise<void>[] = []
-    
+
     try {
       promises.push(this.#publisher.end())
     } catch (err) {
       // Ignore errors during disconnect
     }
-    
+
     try {
       promises.push(this.#subscriber.end())
     } catch (err) {
       // Ignore errors during disconnect
     }
-    
+
     await Promise.allSettled(promises)
   }
 
@@ -101,9 +98,8 @@ export class PostgresTransport implements Transport {
     await this.#ensureConnected()
 
     const encoded = this.#encoder.encode({ payload: message, busId: this.#id })
-    const escapedPayload = typeof encoded === 'string' 
-      ? encoded.replace(/'/g, "''") 
-      : encoded.toString('base64')
+    const escapedPayload =
+      typeof encoded === 'string' ? encoded.replace(/'/g, "''") : encoded.toString('base64')
 
     // Use NOTIFY to send the message
     await this.#publisher.query(`NOTIFY "${channel}", '${escapedPayload}'`)
@@ -161,18 +157,21 @@ export class PostgresTransport implements Transport {
       debug('subscriber connection ended')
       this.#subscriberConnected = false
       // Attempt to reconnect
-      this.#subscriber.connect().then(() => {
-        this.#subscriberConnected = true
-        callback()
-        // Re-subscribe to all channels
-        for (const channel of this.#channelHandlers.keys()) {
-          this.#subscriber.query(`LISTEN "${channel}"`).catch((err) => {
-            debug('error re-subscribing to channel %s: %o', channel, err)
-          })
-        }
-      }).catch((err) => {
-        debug('error reconnecting: %o', err)
-      })
+      this.#subscriber
+        .connect()
+        .then(() => {
+          this.#subscriberConnected = true
+          callback()
+          // Re-subscribe to all channels
+          for (const channel of this.#channelHandlers.keys()) {
+            this.#subscriber.query(`LISTEN "${channel}"`).catch((err) => {
+              debug('error re-subscribing to channel %s: %o', channel, err)
+            })
+          }
+        })
+        .catch((err) => {
+          debug('error reconnecting: %o', err)
+        })
     })
   }
 
