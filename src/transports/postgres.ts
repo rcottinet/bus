@@ -33,22 +33,6 @@ export class PostgresTransport implements Transport {
 
   #id: string | undefined
 
-  /**
-   * Escape an identifier (like a channel name) for use in SQL.
-   * This prevents SQL injection attacks on identifier names.
-   */
-  #escapeIdentifier(identifier: string): string {
-    return '"' + identifier.replace(/"/g, '""') + '"'
-  }
-
-  /**
-   * Escape a string literal for use in SQL.
-   * This prevents SQL injection attacks on string values.
-   */
-  #escapeLiteral(literal: string): string {
-    return "'" + literal.replace(/'/g, "''").replace(/\\/g, '\\\\') + "'"
-  }
-
   constructor(config: PostgresTransportConfig, encoder?: TransportEncoder)
   constructor(config: string, encoder?: TransportEncoder)
   constructor(options: PostgresTransportConfig | string, encoder?: TransportEncoder) {
@@ -116,10 +100,9 @@ export class PostgresTransport implements Transport {
     const encoded = this.#encoder.encode({ payload: message, busId: this.#id })
     const payloadString = typeof encoded === 'string' ? encoded : encoded.toString('base64')
 
-    // Use parameterized query to safely escape the payload
-    // Channel names must be valid identifiers, so we use the identifier quoting
-    const escapedChannel = this.#escapeIdentifier(channel)
-    const escapedPayload = this.#escapeLiteral(payloadString)
+    // Use pg's built-in escaping methods to safely escape the identifiers and literals
+    const escapedChannel = this.#publisher.escapeIdentifier(channel)
+    const escapedPayload = this.#publisher.escapeLiteral(payloadString)
 
     // Use NOTIFY to send the message
     await this.#publisher.query(`NOTIFY ${escapedChannel}, ${escapedPayload}`)
@@ -163,7 +146,7 @@ export class PostgresTransport implements Transport {
     }
 
     // Subscribe to the channel using LISTEN
-    const escapedChannel = this.#escapeIdentifier(channel)
+    const escapedChannel = this.#subscriber.escapeIdentifier(channel)
     await this.#subscriber.query(`LISTEN ${escapedChannel}`)
   }
 
@@ -185,7 +168,7 @@ export class PostgresTransport implements Transport {
           callback()
           // Re-subscribe to all channels
           for (const channel of this.#channelHandlers.keys()) {
-            const escapedChannel = this.#escapeIdentifier(channel)
+            const escapedChannel = this.#subscriber.escapeIdentifier(channel)
             this.#subscriber.query(`LISTEN ${escapedChannel}`).catch((err) => {
               debug('error re-subscribing to channel %s: %o', channel, err)
             })
@@ -199,7 +182,7 @@ export class PostgresTransport implements Transport {
 
   async unsubscribe(channel: string): Promise<void> {
     this.#channelHandlers.delete(channel)
-    const escapedChannel = this.#escapeIdentifier(channel)
+    const escapedChannel = this.#subscriber.escapeIdentifier(channel)
     await this.#subscriber.query(`UNLISTEN ${escapedChannel}`)
   }
 }

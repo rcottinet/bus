@@ -31,7 +31,7 @@ test.group('Postgres Transport', (group) => {
     })
 
     await transport.publish('testing-channel', 'test')
-    await setTimeout(1000)
+    await setTimeout(200)
   }).disableTimeout()
 
   test('transport should receive message emitted by another bus', async ({
