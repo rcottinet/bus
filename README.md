@@ -21,7 +21,8 @@ Currently, it supports the following transports:
 <p>
 👉 <strong>Memory:</strong> A simple in-memory transport for testing purposes.<br />
 👉 <strong>Redis:</strong> A Redis transport for production usage.<br />
-👉 <strong>Mqtt:</strong> A Mqtt transport for production usage.
+👉 <strong>Mqtt:</strong> A Mqtt transport for production usage.<br />
+👉 <strong>Postgres:</strong> A PostgreSQL transport using NOTIFY/LISTEN for production usage.
 </p>
 
 ## Table of Contents
@@ -49,6 +50,7 @@ The module exposes a manager that can be used to register buses.
 import { BusManager } from '@boringnode/bus'
 import { redis } from '@boringnode/bus/transports/redis'
 import { mqtt } from '@boringnode/bus/transports/mqtt'
+import { postgres } from '@boringnode/bus/transports/postgres'
 import { memory } from '@boringnode/bus/transports/memory'
 
 const manager = new BusManager({
@@ -67,6 +69,15 @@ const manager = new BusManager({
       transport: mqtt({
         host: 'localhost',
         port: 1883,
+      }),
+    },
+    postgres: {
+      transport: postgres({
+        host: 'localhost',
+        port: 5432,
+        database: 'mydb',
+        user: 'postgres',
+        password: 'password',
       }),
     },
   },
@@ -88,6 +99,7 @@ By default, the bus will use the `default` transport. You can specify different 
 ```typescript
 manager.use('redis').publish('channel', 'Hello world')
 manager.use('mqtt').publish('channel', 'Hello world')
+manager.use('postgres').publish('channel', 'Hello world')
 ```
 
 ### Without the manager
